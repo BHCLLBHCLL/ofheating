@@ -80,8 +80,10 @@ def write_air_T(patches: list[str]) -> None:
             lines += [
                 f"    {p}",
                 "    {",
-                "        type                compressible::turbulentTemperatureCoupledBaffleMixed;",
+                "        type                compressible::turbulentTemperatureRadCoupledMixed;",
                 "        Tnbr                T;",
+                "        qr                  none;",
+                "        qrNbr               none;",
                 "        kappaMethod         fluidThermo;",
                 f"        value               uniform {T0};",
                 "    }",
@@ -259,8 +261,10 @@ def write_solid_T(region: str, patches: list[str]) -> None:
                 lines += [
                     f"    {p}",
                     "    {",
-                    "        type                compressible::turbulentTemperatureCoupledBaffleMixed;",
+                    "        type                compressible::turbulentTemperatureRadCoupledMixed;",
                     "        Tnbr                T;",
+                    "        qr                  none;",
+                    "        qrNbr               none;",
                     "        kappaMethod         solidThermo;",
                     f"        value               uniform {T0};",
                     "    }",

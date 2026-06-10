@@ -8,7 +8,7 @@ FoamFile
 
 heatSource
 {
-    type            scalarExplicitSource;
+    type            scalarSemiImplicitSource;
     active          yes;
     selectionMode   all;
     fields          (h);
