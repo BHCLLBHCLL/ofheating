@@ -9,52 +9,51 @@ FoamFile
     object      createPatchDict;
 }
 
-fanInletLeft
-{
-    patchInfo
+patches
+(
     {
-        type            patch;
+        name            fanInletLeft;
+        patchInfo
+        {
+            type            patch;
+        }
+        constructFrom     set;
+        set               fanInletLeftFaces;
     }
-    constructFrom     set;
-    set               fanInletLeftFaces;
-}
-
-fanInletRight
-{
-    patchInfo
     {
-        type            patch;
+        name            fanInletRight;
+        patchInfo
+        {
+            type            patch;
+        }
+        constructFrom     set;
+        set               fanInletRightFaces;
     }
-    constructFrom     set;
-    set               fanInletRightFaces;
-}
-
-bottomWall
-{
-    patchInfo
     {
-        type            wall;
+        name            bottomWall;
+        patchInfo
+        {
+            type            wall;
+        }
+        constructFrom     patches;
+        patches         (fanInlet);
     }
-    constructFrom     patches;
-    patches           (fanInlet);
-}
-
-exhaustLeft
-{
-    patchInfo
     {
-        type            patch;
+        name            exhaustLeft;
+        patchInfo
+        {
+            type            patch;
+        }
+        constructFrom     set;
+        set               exhaustLeftFaces;
     }
-    constructFrom     set;
-    set               exhaustLeftFaces;
-}
-
-exhaustRight
-{
-    patchInfo
     {
-        type            patch;
+        name            exhaustRight;
+        patchInfo
+        {
+            type            patch;
+        }
+        constructFrom     set;
+        set               exhaustRightFaces;
     }
-    constructFrom     set;
-    set               exhaustRightFaces;
-}
+);
