@@ -15,6 +15,7 @@ CASE = Path(__file__).resolve().parent.parent
 REGIONS = ["air", "cpu", "vc", "motherboard", "fins", "chassis", "screen"]
 FLUID = "air"
 T0 = 298.0
+T_DIMS = "[0 0 0 1 0 0 0]"  # K
 P0 = 101325.0
 U_FAN = (0.0, 2.0, 0.0)  # m/s, 模拟风扇进风
 EXT_HTC = 8.0  # W/m^2/K, 固体外表面自然对流
@@ -59,7 +60,7 @@ def foam_header(obj: str, field_class: str = "volScalarField") -> str:
 def write_air_T(patches: list[str]) -> None:
     lines = [
         foam_header("T"),
-        "dimensions      [0 1 0 1 0 0 0];",
+        f"dimensions      {T_DIMS};",
         f"internalField   uniform {T0};",
         "boundaryField",
         "{",
@@ -238,7 +239,7 @@ def write_solid_p(region: str, patches: list[str]) -> None:
 def write_solid_T(region: str, patches: list[str]) -> None:
     lines = [
         foam_header("T"),
-        "dimensions      [0 1 0 1 0 0 0];",
+        f"dimensions      {T_DIMS};",
         f"internalField   uniform {T0};",
         "boundaryField",
         "{",
