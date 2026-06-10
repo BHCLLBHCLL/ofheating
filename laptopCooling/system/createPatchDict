@@ -9,6 +9,8 @@ FoamFile
     object      createPatchDict;
 }
 
+pointSync false;
+
 patches
 (
     {
