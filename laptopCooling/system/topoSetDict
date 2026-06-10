@@ -1,7 +1,8 @@
 /* -*- C++ -*- */
-// 部件分区: 全部使用 cellSet + setToCellZone (OpenFOAM v2412 兼容)
-// dz=0.25mm, 单元中心 z = 0.125 + 0.25k mm
-// 固体 z 带互不重叠; 机壳为薄壁 cellSet; 空气 = 全域 - 固体
+// 部件分区: 全部 cellSet + setToCellZone (OpenFOAM v2412)
+// dz=0.25mm, 单元中心 z = (k+0.5)*0.00025 m
+// 注意: v2412 首个 cellZoneSet action new 会在后续 zone 写入时丢失,
+//       因此 motherboard 必须排在 cpu/vc/fins/screen 之后 (不能第一个建 zone).
 
 FoamFile
 {
@@ -13,25 +14,26 @@ FoamFile
 
 actions
 (
-    // ========== 内部固体 (先建 cellSet, 再转 cellZone) ==========
-
-    // 主板 FR4: z 1.05-1.55mm (中心 1.125, 1.375mm)
+    // v2412 缺陷: 第一个 cellZone 在写入第二个 zone 时从 cellZones 丢失.
+    // 用域角 1 个单元占位, 该 zone 被丢弃后单元由后续 chassis 收录.
     {
-        name    mbCells;
+        name    _v2412_padCells;
         type    cellSet;
         action  new;
         source  boxToCell;
-        box     (0.020 0.020 0.00105) (0.160 0.140 0.00155);
+        box     (0.000 0.000 0.00000) (0.002 0.002 0.00025);
     }
     {
-        name    motherboard;
+        name    _v2412_pad;
         type    cellZoneSet;
         action  new;
         source  setToCellZone;
-        set     mbCells;
+        set     _v2412_padCells;
     }
 
-    // CPU: z 1.60-2.00mm (中心 1.625, 1.875mm)
+    // ========== 内部固体 (cellSet -> cellZone) ==========
+
+    // CPU: z 1.60-2.00mm
     {
         name    cpuCells;
         type    cellSet;
@@ -47,7 +49,7 @@ actions
         set     cpuCells;
     }
 
-    // VC: z 2.10-2.60mm (中心 2.125-2.625mm)
+    // VC: z 2.10-2.60mm
     {
         name    vcCells;
         type    cellSet;
@@ -93,6 +95,23 @@ actions
         action  new;
         source  setToCellZone;
         set     screenCells;
+    }
+
+    // 主板 FR4: z 1.05-1.55mm (两层, 中心 1.125/1.375mm)
+    // 必须晚于 cpu 等 zone 创建 (规避 v2412 首个 cellZone 丢失)
+    {
+        name    motherboardCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.020 0.020 0.00105) (0.160 0.140 0.00155);
+    }
+    {
+        name    motherboard;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     motherboardCells;
     }
 
     // ========== 机壳薄壁 cellSet ==========
