@@ -29,8 +29,13 @@ echo "--- topoSet (部件 cellZone) ---"
 topoSet > log.topoSet 2>&1 || { tail log.topoSet; exit 1; }
 
 echo "--- splitMeshRegions ---"
-splitMeshRegions -cellZones -overwrite > log.splitMeshRegions 2>&1 \
+splitMeshRegions -cellZonesOnly -overwrite > log.splitMeshRegions 2>&1 \
     || { tail log.splitMeshRegions; exit 1; }
+
+echo "--- relocate / verify region meshes ---"
+sh scripts/relocateRegionMeshes.sh
+sh scripts/verifyRegions.sh > log.verifyRegions 2>&1 \
+    || { cat log.verifyRegions; exit 1; }
 
 echo "--- setup solid system files ---"
 sh scripts/setupSolidSystem.sh

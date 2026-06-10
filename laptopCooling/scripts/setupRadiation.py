@@ -15,8 +15,10 @@ SKIP_PATCHES = {"fanInlet", "exhaust"}
 
 def patch_air_boundary() -> list[str]:
     boundary = CASE / "constant" / AIR / "polyMesh" / "boundary"
+    if not boundary.exists() and (CASE / "constant" / "polyMesh" / "boundary").exists():
+        boundary = CASE / "constant" / "polyMesh" / "boundary"
     if not boundary.exists():
-        raise FileNotFoundError(f"Missing {boundary}")
+        raise FileNotFoundError(f"Missing air polyMesh/boundary under constant/air or constant/")
 
     text = boundary.read_text()
     patched: list[str] = []

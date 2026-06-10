@@ -16,11 +16,27 @@ U_FAN = (0.0, 2.0, 0.0)  # m/s, 模拟风扇进风
 ENABLE_RADIATION = True
 
 
+def boundary_path(region: str) -> Path:
+    candidates = [CASE / "constant" / region / "polyMesh" / "boundary"]
+    if region == FLUID:
+        candidates.append(CASE / "constant" / "polyMesh" / "boundary")
+    for path in candidates:
+        if path.exists():
+            return path
+    hint = []
+    root_mesh = CASE / "constant" / "polyMesh" / "boundary"
+    if root_mesh.exists():
+        hint.append("found constant/polyMesh/boundary (run relocateRegionMeshes.sh)")
+    for child in sorted((CASE / "constant").glob("*/polyMesh/boundary")):
+        hint.append(str(child.parent.parent.name))
+    extra = f" Existing regions: {', '.join(hint)}" if hint else ""
+    raise FileNotFoundError(
+        f"Missing mesh boundary for region '{region}'.{extra}"
+    )
+
+
 def read_patches(region: str) -> list[str]:
-    boundary = CASE / "constant" / region / "polyMesh" / "boundary"
-    if not boundary.exists():
-        raise FileNotFoundError(f"Missing {boundary}")
-    text = boundary.read_text()
+    text = boundary_path(region).read_text()
     return re.findall(r"^\s{4}(\S+)\s*$", text, re.MULTILINE)
 
 
