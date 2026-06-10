@@ -10,8 +10,8 @@ solvers
 {
     h
     {
-        solver          PBiCGStab;
-        preconditioner  DILU;
+        solver          PCG;
+        preconditioner  DIC;
         tolerance       1e-6;
         relTol          0.1;
     }
@@ -24,8 +24,8 @@ solvers
 
     e
     {
-        solver          PBiCGStab;
-        preconditioner  DILU;
+        solver          PCG;
+        preconditioner  DIC;
         tolerance       1e-6;
         relTol          0.1;
     }
