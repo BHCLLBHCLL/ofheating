@@ -1,5 +1,5 @@
 #!/bin/sh
-cd "${0%/*}/.." || exit 1
+cd "${0%/*}" || exit 1
 
 # OpenFOAM v2412 环境 (按安装路径修改)
 if [ -z "$WM_PROJECT" ]; then
