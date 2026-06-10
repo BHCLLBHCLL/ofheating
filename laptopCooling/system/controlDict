@@ -42,7 +42,7 @@ functions
 {
     resAir
     {
-        type            residuals;
+        type            solverInfo;
         libs            (utilityFunctionObjects);
         region          air;
         writeControl    timeStep;
@@ -63,7 +63,7 @@ functions
 
         function
         {
-            type            residuals;
+            type            solverInfo;
             libs            (utilityFunctionObjects);
             writeControl    timeStep;
             writeInterval   1;
