@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""topoSet 后检查各 cellZone 非空, 并检测单元是否落入多个 zone。"""
+"""topoSet 后检查各 cellZone 非空, 并检测固体 zone 之间是否重叠。"""
 
 from __future__ import annotations
 
@@ -9,26 +9,27 @@ from pathlib import Path
 
 CASE = Path(__file__).resolve().parent.parent
 ZONES = ["cpu", "vc", "motherboard", "fins", "chassis", "screen", "air"]
+SOLIDS = ["cpu", "vc", "motherboard", "fins", "chassis", "screen"]
 CELL_ZONES = CASE / "constant" / "polyMesh" / "cellZones"
 
 
 def parse_zone_cells(text: str) -> dict[str, set[int]]:
-    zones: dict[str, set[int]] = {}
+    zones: dict[str, set[int]] = {z: set() for z in ZONES}
     for zone in ZONES:
+        # 匹配 zone 块: "motherboard\n{ ... cellLabels List<label> N ( ... )"
         pattern = (
-            rf"(?:^|\n)\s*{re.escape(zone)}\s*\{{[\s\S]*?"
-            r"cellLabels\s+List<label>\s*\n\s*(\d+)\s*\(\s*([\s\S]*?)\s*\)\s*;\s*\}\s*"
+            rf"(?:^|\()\s*{re.escape(zone)}\s*\{{[\s\S]*?"
+            r"cellLabels\s+List<label>\s+(\d+)\s*\(([\s\S]*?)\)"
         )
         match = re.search(pattern, text)
         if not match:
-            zones[zone] = set()
             continue
         count = int(match.group(1))
+        if count == 0:
+            continue
         body = match.group(2)
         labels = [int(x) for x in re.findall(r"\b\d+\b", body)]
-        if len(labels) != count:
-            labels = labels[:count]
-        zones[zone] = set(labels)
+        zones[zone] = set(labels[:count])
     return zones
 
 
@@ -50,16 +51,14 @@ def main() -> int:
             failed.append(zone)
 
     overlaps: list[tuple[str, str, int]] = []
-    for i, z1 in enumerate(ZONES):
-        for z2 in ZONES[i + 1 :]:
-            if z1 == "air" or z2 == "air":
-                continue
+    for i, z1 in enumerate(SOLIDS):
+        for z2 in SOLIDS[i + 1 :]:
             common = zones.get(z1, set()) & zones.get(z2, set())
             if common:
                 overlaps.append((z1, z2, len(common)))
 
     if overlaps:
-        print("ERROR: overlapping cellZones detected:", file=sys.stderr)
+        print("ERROR: overlapping solid cellZones:", file=sys.stderr)
         for z1, z2, n in overlaps:
             print(f"  {z1} ∩ {z2}: {n} cells", file=sys.stderr)
         return 1
@@ -68,7 +67,7 @@ def main() -> int:
         print(f"ERROR: empty cellZones: {', '.join(failed)}", file=sys.stderr)
         return 1
 
-    print("  all cellZones non-empty and pairwise disjoint")
+    print("  all cellZones non-empty, solids pairwise disjoint")
     return 0
 
 

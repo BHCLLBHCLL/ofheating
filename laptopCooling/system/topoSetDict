@@ -12,20 +12,20 @@ FoamFile
 
 actions
 (
-    // --- 主板 FR4: z 1.0-1.5mm (中心 1.25mm) ---
+    // --- 主板 FR4: 单层 z=1.25mm (dz=0.5mm 第 3 层), PCB 在 CPU 下方连续不断开 ---
     {
-        name    motherboard;
-        type    cellZoneSet;
+        name    mbCells;
+        type    cellSet;
         action  new;
         source  boxToCell;
-        box     (0.020 0.020 0.0010) (0.160 0.140 0.0015);
+        box     (0.020 0.020 0.0012) (0.160 0.140 0.0013);
     }
     {
         name    motherboard;
         type    cellZoneSet;
-        action  delete;
-        source  boxToCell;
-        box     (0.055 0.060 0.0010) (0.095 0.100 0.0015);
+        action  new;
+        source  setToCellZone;
+        set     mbCells;
     }
 
     // --- CPU: z 1.5-2.0mm (中心 1.75mm), 与 VC 不重叠 ---
