@@ -1,8 +1,7 @@
 /* -*- C++ -*- */
 // 部件分区: 全部 cellSet + setToCellZone (OpenFOAM v2412)
 // dz=0.25mm, 单元中心 z = (k+0.5)*0.00025 m
-// 注意: v2412 首个 cellZoneSet action new 会在后续 zone 写入时丢失,
-//       因此 motherboard 必须排在 cpu/vc/fins/screen 之后 (不能第一个建 zone).
+// 固体 zone 互不重叠; motherboard 在 chassis 之前创建供 zoneToCell subtract 使用.
 
 FoamFile
 {
@@ -14,23 +13,6 @@ FoamFile
 
 actions
 (
-    // v2412 缺陷: 第一个 cellZone 在写入第二个 zone 时从 cellZones 丢失.
-    // 用域角 1 个单元占位, 该 zone 被丢弃后单元由后续 chassis 收录.
-    {
-        name    _v2412_padCells;
-        type    cellSet;
-        action  new;
-        source  boxToCell;
-        box     (0.000 0.000 0.00000) (0.002 0.002 0.00025);
-    }
-    {
-        name    _v2412_pad;
-        type    cellZoneSet;
-        action  new;
-        source  setToCellZone;
-        set     _v2412_padCells;
-    }
-
     // ========== 内部固体 (cellSet -> cellZone) ==========
 
     // CPU: z 1.60-2.00mm

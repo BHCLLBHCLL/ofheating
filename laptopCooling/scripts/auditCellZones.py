@@ -117,7 +117,7 @@ def zone_names_in_cellzones(text: str) -> list[str]:
     names: list[str] = []
     for line in text.splitlines():
         s = line.strip()
-        if s in ZONES or s == "_v2412_pad":
+        if s in ZONES:
             names.append(s)
     return names
 
