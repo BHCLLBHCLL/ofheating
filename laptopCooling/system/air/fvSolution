@@ -60,10 +60,10 @@ solvers
 
     qr
     {
-        solver          PCG;
-        preconditioner  DIC;
+        solver          GAMG;
         tolerance       1e-6;
         relTol          0.1;
+        smoother        GaussSeidel;
     }
 
     qRFinal
