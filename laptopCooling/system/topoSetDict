@@ -1,6 +1,7 @@
 /* -*- C++ -*- */
-// 部件 cellZone (单位: m), dz=0.5mm
-// 规则: 固体 zone 互不重叠; 机壳仅为薄壁, 并 delete 与内部固体重叠的单元
+// 部件分区: 全部使用 cellSet + setToCellZone (OpenFOAM v2412 兼容)
+// dz=0.25mm, 单元中心 z = 0.125 + 0.25k mm
+// 固体 z 带互不重叠; 机壳为薄壁 cellSet; 空气 = 全域 - 固体
 
 FoamFile
 {
@@ -12,13 +13,15 @@ FoamFile
 
 actions
 (
-    // --- 主板 FR4: 单层 z=1.25mm (dz=0.5mm 第 3 层), PCB 在 CPU 下方连续不断开 ---
+    // ========== 内部固体 (先建 cellSet, 再转 cellZone) ==========
+
+    // 主板 FR4: z 1.05-1.55mm (中心 1.125, 1.375mm)
     {
         name    mbCells;
         type    cellSet;
         action  new;
         source  boxToCell;
-        box     (0.020 0.020 0.0012) (0.160 0.140 0.0013);
+        box     (0.020 0.020 0.00105) (0.160 0.140 0.00155);
     }
     {
         name    motherboard;
@@ -28,107 +31,197 @@ actions
         set     mbCells;
     }
 
-    // --- CPU: z 1.5-2.0mm (中心 1.75mm), 与 VC 不重叠 ---
+    // CPU: z 1.60-2.00mm (中心 1.625, 1.875mm)
+    {
+        name    cpuCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.055 0.060 0.00160) (0.095 0.100 0.00200);
+    }
     {
         name    cpu;
         type    cellZoneSet;
         action  new;
-        source  boxToCell;
-        box     (0.055 0.060 0.0015) (0.095 0.100 0.0020);
+        source  setToCellZone;
+        set     cpuCells;
     }
 
-    // --- VC: z 2.5-3.0mm (中心 2.75mm), 与 CPU 留 2.25mm 空气隙 ---
+    // VC: z 2.10-2.60mm (中心 2.125-2.625mm)
+    {
+        name    vcCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.045 0.050 0.00210) (0.105 0.110 0.00260);
+    }
     {
         name    vc;
         type    cellZoneSet;
         action  new;
-        source  boxToCell;
-        box     (0.045 0.050 0.0025) (0.105 0.110 0.0030);
+        source  setToCellZone;
+        set     vcCells;
     }
 
-    // --- 散热翅片: z >= 3.0mm ---
+    // 散热翅片: z >= 2.65mm
+    {
+        name    finsCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.130 0.040 0.00265) (0.170 0.120 0.00900);
+    }
     {
         name    fins;
         type    cellZoneSet;
         action  new;
-        source  boxToCell;
-        box     (0.130 0.040 0.0030) (0.170 0.120 0.0090);
+        source  setToCellZone;
+        set     finsCells;
     }
 
-    // --- 屏幕后盖 ---
+    // 屏幕后盖
+    {
+        name    screenCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.010 0.135 0.01050) (0.170 0.158 0.01650);
+    }
     {
         name    screen;
         type    cellZoneSet;
         action  new;
-        source  boxToCell;
-        box     (0.010 0.135 0.0105) (0.170 0.158 0.0165);
+        source  setToCellZone;
+        set     screenCells;
     }
 
-    // --- 机壳薄壁 (不与内腔体块重叠) ---
+    // ========== 机壳薄壁 cellSet ==========
+    {
+        name    chassisCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.000 0.000 0.00000) (0.180 0.160 0.00100);
+    }
+    {
+        name    chassisCells;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        box     (0.000 0.000 0.00900) (0.180 0.160 0.01100);
+    }
+    {
+        name    chassisCells;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        box     (0.000 0.000 0.00100) (0.008 0.160 0.00950);
+    }
+    {
+        name    chassisCells;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        box     (0.172 0.000 0.00100) (0.180 0.160 0.00950);
+    }
+    {
+        name    chassisCells;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    motherboard;
+    }
+    {
+        name    chassisCells;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    cpu;
+    }
+    {
+        name    chassisCells;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    vc;
+    }
+    {
+        name    chassisCells;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    fins;
+    }
+    {
+        name    chassisCells;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    screen;
+    }
     {
         name    chassis;
         type    cellZoneSet;
         action  new;
-        source  boxToCell;
-        box     (0.000 0.000 0.0000) (0.180 0.160 0.0010);
-    }
-    {
-        name    chassis;
-        type    cellZoneSet;
-        action  add;
-        source  boxToCell;
-        box     (0.000 0.000 0.0090) (0.180 0.160 0.0110);
-    }
-    {
-        name    chassis;
-        type    cellZoneSet;
-        action  add;
-        source  boxToCell;
-        box     (0.000 0.000 0.0010) (0.008 0.160 0.0095);
-    }
-    {
-        name    chassis;
-        type    cellZoneSet;
-        action  add;
-        source  boxToCell;
-        box     (0.172 0.000 0.0010) (0.180 0.160 0.0095);
-    }
-    {
-        name    chassis;
-        type    cellZoneSet;
-        action  delete;
-        source  zoneToCell;
-        zones
-        (
-            cpu
-            vc
-            motherboard
-            fins
-            screen
-        );
+        source  setToCellZone;
+        set     chassisCells;
     }
 
-    // --- 空气: 全域减去固体 ---
+    // ========== 空气: 全域 - 固体 ==========
+    {
+        name    airCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.000 0.000 0.00000) (0.180 0.160 0.01800);
+    }
+    {
+        name    airCells;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    motherboard;
+    }
+    {
+        name    airCells;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    cpu;
+    }
+    {
+        name    airCells;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    vc;
+    }
+    {
+        name    airCells;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    fins;
+    }
+    {
+        name    airCells;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    screen;
+    }
+    {
+        name    airCells;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    chassis;
+    }
     {
         name    air;
         type    cellZoneSet;
         action  new;
-        source  boxToCell;
-        box     (0.000 0.000 0.0000) (0.180 0.160 0.0180);
-    }
-    {
-        name    air;
-        type    cellZoneSet;
-        action  delete;
-        source  zoneToCell;
-        zones
-        (
-            cpu
-            vc
-            motherboard
-            fins
-            screen
-            chassis
-        );
+        source  setToCellZone;
+        set     airCells;
     }
 );

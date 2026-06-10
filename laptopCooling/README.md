@@ -120,7 +120,7 @@ foamToVTK -allRegions
 |------|------|------|
 | CPU 功耗 | `constant/cpu/fvOptions` | `heatSource` 源项 |
 | 风扇风速 | `0/air/U` → fanInlet | 边界速度 |
-| 网格密度 | `system/blockMeshDict` | 默认 90×80×36 ≈ 26 万单元 (dz=0.5mm) |
+| 网格密度 | `system/blockMeshDict` | 默认 90×80×72 ≈ 52 万单元 (dz=0.25mm) |
 | 材料导热率 | `constant/<region>/thermophysicalProperties` | |
 | 辐射开关 | `constant/air/radiationProperties` | `radiation on/off` |
 | 面发射率 | `constant/air/boundaryRadiationProperties` | 各 patch 发射率 |
