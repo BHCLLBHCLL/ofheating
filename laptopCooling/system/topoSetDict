@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
-// 部件 cellZone (单位: m), z 向按 dz=0.5mm 层对齐 (单元中心 0.25+0.5k mm)
-// 先划分固体 zone, 再 zoneToCell+delete 生成空气 zone
+// 部件 cellZone (单位: m), dz=0.5mm
+// 规则: 固体 zone 互不重叠; 机壳仅为薄壁, 并 delete 与内部固体重叠的单元
 
 FoamFile
 {
@@ -12,50 +12,50 @@ FoamFile
 
 actions
 (
-    // --- CPU 封装层 z: 1.5-2.5mm (物理 1.7-2.2mm, 2 层单元) ---
-    {
-        name    cpu;
-        type    cellZoneSet;
-        action  new;
-        source  boxToCell;
-        box     (0.055 0.060 0.0015) (0.095 0.100 0.0025);
-    }
-
-    // --- VC 蒸汽腔 z: 2.0-3.0mm (物理 2.2-2.6mm) ---
-    {
-        name    vc;
-        type    cellZoneSet;
-        action  new;
-        source  boxToCell;
-        box     (0.045 0.050 0.0020) (0.105 0.110 0.0030);
-    }
-
-    // --- 主板 FR4 z: 1.0-2.0mm (物理 1.2-1.7mm) ---
+    // --- 主板 FR4: z 1.0-1.5mm (中心 1.25mm) ---
     {
         name    motherboard;
         type    cellZoneSet;
         action  new;
         source  boxToCell;
-        box     (0.020 0.020 0.0010) (0.160 0.140 0.0020);
+        box     (0.020 0.020 0.0010) (0.160 0.140 0.0015);
     }
     {
         name    motherboard;
         type    cellZoneSet;
         action  delete;
         source  boxToCell;
-        box     (0.055 0.060 0.0010) (0.095 0.100 0.0020);
+        box     (0.055 0.060 0.0010) (0.095 0.100 0.0015);
     }
 
-    // --- 散热翅片 z: 2.5-9.0mm (物理 2.6-9.0mm) ---
+    // --- CPU: z 1.5-2.0mm (中心 1.75mm), 与 VC 不重叠 ---
+    {
+        name    cpu;
+        type    cellZoneSet;
+        action  new;
+        source  boxToCell;
+        box     (0.055 0.060 0.0015) (0.095 0.100 0.0020);
+    }
+
+    // --- VC: z 2.5-3.0mm (中心 2.75mm), 与 CPU 留 2.25mm 空气隙 ---
+    {
+        name    vc;
+        type    cellZoneSet;
+        action  new;
+        source  boxToCell;
+        box     (0.045 0.050 0.0025) (0.105 0.110 0.0030);
+    }
+
+    // --- 散热翅片: z >= 3.0mm ---
     {
         name    fins;
         type    cellZoneSet;
         action  new;
         source  boxToCell;
-        box     (0.130 0.040 0.0025) (0.170 0.120 0.0090);
+        box     (0.130 0.040 0.0030) (0.170 0.120 0.0090);
     }
 
-    // --- 屏幕后盖 z: 10.5-16.5mm ---
+    // --- 屏幕后盖 ---
     {
         name    screen;
         type    cellZoneSet;
@@ -64,15 +64,14 @@ actions
         box     (0.010 0.135 0.0105) (0.170 0.158 0.0165);
     }
 
-    // --- 机壳: 底板 z: 0-1.5mm ---
+    // --- 机壳薄壁 (不与内腔体块重叠) ---
     {
         name    chassis;
         type    cellZoneSet;
         action  new;
         source  boxToCell;
-        box     (0.000 0.000 0.0000) (0.180 0.160 0.0015);
+        box     (0.000 0.000 0.0000) (0.180 0.160 0.0010);
     }
-    // --- 机壳: 顶盖 z: 9.0-11.0mm ---
     {
         name    chassis;
         type    cellZoneSet;
@@ -80,21 +79,33 @@ actions
         source  boxToCell;
         box     (0.000 0.000 0.0090) (0.180 0.160 0.0110);
     }
-    // --- 机壳: 左侧壁 ---
     {
         name    chassis;
         type    cellZoneSet;
         action  add;
         source  boxToCell;
-        box     (0.000 0.000 0.0010) (0.012 0.160 0.0095);
+        box     (0.000 0.000 0.0010) (0.008 0.160 0.0095);
     }
-    // --- 机壳: 右侧壁 ---
     {
         name    chassis;
         type    cellZoneSet;
         action  add;
         source  boxToCell;
         box     (0.172 0.000 0.0010) (0.180 0.160 0.0095);
+    }
+    {
+        name    chassis;
+        type    cellZoneSet;
+        action  delete;
+        source  zoneToCell;
+        zones
+        (
+            cpu
+            vc
+            motherboard
+            fins
+            screen
+        );
     }
 
     // --- 空气: 全域减去固体 ---
