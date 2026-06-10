@@ -19,7 +19,7 @@ regions
         box (0.050 0.045 0.0026) (0.095 0.115 0.0075);
         fieldValues
         (
-            volVectorFieldValue U (0 0.8 0)
+            volVectorFieldValue U (0 0.3 0)
         );
     }
     // 右风扇流道 (x=105-150 mm)
@@ -28,7 +28,7 @@ regions
         box (0.105 0.045 0.0026) (0.150 0.115 0.0075);
         fieldValues
         (
-            volVectorFieldValue U (0 0.8 0)
+            volVectorFieldValue U (0 0.3 0)
         );
     }
 );

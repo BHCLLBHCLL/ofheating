@@ -84,14 +84,28 @@ SIMPLE
     consistent               no;
     hydrostaticInitialization yes;
     nHydrostaticCorrectors   5;
-    rhoMin                   0.5;
-    rhoMax                   5;
+    rhoMin                   1.1;
+    rhoMax                   1.35;
+    pRefCell                 0;
+    pRefValue                0;
 
     residualControl
     {
-        p_rgh   1e-4;
-        U       1e-4;
-        h       1e-6;
+        p_rgh
+        {
+            tolerance   1e-3;
+            relTol      0;
+        }
+        U
+        {
+            tolerance   1e-3;
+            relTol      0;
+        }
+        h
+        {
+            tolerance   1e-5;
+            relTol      0.01;
+        }
     }
 }
 
@@ -99,9 +113,9 @@ relaxationFactors
 {
     equations
     {
-        U           0.3;
-        h           0.7;
-        p_rgh       0.05;
-        ".*"        0.5;
+        U           0.2;
+        h           0.8;
+        p_rgh       0.01;
+        ".*"        0.4;
     }
 }

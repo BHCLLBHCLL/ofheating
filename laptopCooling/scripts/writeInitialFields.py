@@ -22,7 +22,8 @@ H0 = CP_AIR * T0
 P0 = 101325.0
 R_AIR = 287.0
 RHO0 = P0 / (R_AIR * T0)
-U_FAN = (0.0, 0.8, 0.0)  # m/s, 低马赫进风 (稳态启动)
+U_FAN = (0.0, 0.3, 0.0)  # m/s, 双风扇总进风 (低马赫稳态)
+U_INIT = (0.0, 0.15, 0.0)  # 域内初值, 避免从静止突然启动
 EXT_HTC = 8.0  # W/m^2/K, 固体外表面自然对流
 ENABLE_RADIATION = True
 
@@ -247,7 +248,7 @@ def write_air_U(patches: list[str]) -> None:
     lines = [
         foam_header("U", "volVectorField"),
         "dimensions      [0 1 -1 0 0 0 0];",
-        "internalField   uniform (0 0 0);",
+        f"internalField   uniform ({U_INIT[0]} {U_INIT[1]} {U_INIT[2]});",
         "boundaryField",
         "{",
     ]

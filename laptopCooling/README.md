@@ -32,7 +32,7 @@
 
 | Patch | 位置 | 类型 |
 |-------|------|------|
-| **fanInletLeft** | 底面 x=50–95 mm | 速度入口 U = (0, 0.8, 0) m/s, T = 298 K |
+| **fanInletLeft** | 底面 x=50–95 mm | 速度入口 U = (0, 0.3, 0) m/s, T = 298 K |
 | **fanInletRight** | 底面 x=105–150 mm | 同上 |
 | **bottomWall** | 底面其余区域 | 封闭壁面 (noSlip) |
 | **exhaustLeft** | 后缘 y=160, x=10–85, z=10–18 mm | 压力出口 |

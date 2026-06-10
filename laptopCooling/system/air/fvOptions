@@ -6,11 +6,4 @@ FoamFile
     object      fvOptions;
 }
 
-limitU
-{
-    type            limitVelocity;
-    active          yes;
-    selectionMode   all;
-    max             5;
-    U               U;
-}
+// 空字典: 已移除 limitVelocity (会钳制 99% 单元导致 phi 与压力方程不一致)
