@@ -1,0 +1,90 @@
+/* -*- C++ -*- */
+// MacBook Pro 14" 散热子域: 180 x 160 x 18 mm
+// 网格: 90 x 80 x 9 = 64800 cells
+
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+
+scale   1;
+
+vertices
+(
+    (0      0      0)
+    (0.180  0      0)
+    (0.180  0.160  0)
+    (0      0.160  0)
+    (0      0      0.018)
+    (0.180  0      0.018)
+    (0.180  0.160  0.018)
+    (0      0.160  0.018)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) (90 80 9) simpleGrading (1 1 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    fanInlet
+    {
+        type patch;
+        faces
+        (
+            (0 1 5 4)
+        );
+    }
+    exhaust
+    {
+        type patch;
+        faces
+        (
+            (1 2 6 5)
+        );
+    }
+    hingeScreen
+    {
+        type patch;
+        faces
+        (
+            (3 2 6 7)
+        );
+    }
+    xMin
+    {
+        type patch;
+        faces
+        (
+            (0 3 7 4)
+        );
+    }
+    zMin
+    {
+        type patch;
+        faces
+        (
+            (0 1 2 3)
+        );
+    }
+    zMax
+    {
+        type patch;
+        faces
+        (
+            (4 7 6 5)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);

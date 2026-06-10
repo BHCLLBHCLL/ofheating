@@ -1,0 +1,151 @@
+/* -*- C++ -*- */
+// 按 MacBook Pro 14" 比例划分部件 cellZone (单位: m)
+// 顺序: 先小后大, 各 zone 互不重叠
+
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+
+actions
+(
+    // --- CPU 处理器 (40x40x0.5 mm 封装) ---
+    {
+        name    cpu;
+        type    cellZoneSet;
+        action  new;
+        source  boxToCell;
+        box     (0.055 0.060 0.0017) (0.095 0.100 0.0022);
+    }
+
+    // --- VC 蒸汽腔 (60x60x0.4 mm) ---
+    {
+        name    vc;
+        type    cellZoneSet;
+        action  new;
+        source  boxToCell;
+        box     (0.045 0.050 0.0022) (0.105 0.110 0.0026);
+    }
+
+    // --- 主板 FR4 (z=1.2-1.7 mm, 排除 CPU 下方重叠) ---
+    {
+        name    motherboard;
+        type    cellZoneSet;
+        action  new;
+        source  boxToCell;
+        box     (0.020 0.020 0.0012) (0.160 0.140 0.0017);
+    }
+    {
+        name    motherboard;
+        type    cellZoneSet;
+        action  remove;
+        source  boxToCell;
+        box     (0.055 0.060 0.0012) (0.095 0.100 0.0017);
+    }
+
+    // --- 散热翅片 (40x80x6.4 mm 翅片组) ---
+    {
+        name    fins;
+        type    cellZoneSet;
+        action  new;
+        source  boxToCell;
+        box     (0.130 0.040 0.0026) (0.170 0.120 0.0090);
+    }
+
+    // --- 屏幕后盖/转轴区 ---
+    {
+        name    screen;
+        type    cellZoneSet;
+        action  new;
+        source  boxToCell;
+        box     (0.010 0.135 0.0107) (0.170 0.158 0.0165);
+    }
+
+    // --- 机壳: 底板 ---
+    {
+        name    chassis;
+        type    cellZoneSet;
+        action  new;
+        source  boxToCell;
+        box     (0.000 0.000 0.0000) (0.180 0.160 0.0012);
+    }
+    // --- 机壳: 顶盖 ---
+    {
+        name    chassis;
+        type    cellZoneSet;
+        action  add;
+        source  boxToCell;
+        box     (0.000 0.000 0.0095) (0.180 0.160 0.0107);
+    }
+    // --- 机壳: 左侧壁 ---
+    {
+        name    chassis;
+        type    cellZoneSet;
+        action  add;
+        source  boxToCell;
+        box     (0.000 0.000 0.0012) (0.008 0.160 0.0095);
+    }
+    // --- 机壳: 右侧壁 ---
+    {
+        name    chassis;
+        type    cellZoneSet;
+        action  add;
+        source  boxToCell;
+        box     (0.172 0.000 0.0012) (0.180 0.160 0.0095);
+    }
+    // 前缘 y=0 留作 fanInlet 进风面, 不设机壳前壁
+
+    // --- 空气 (流体域): 全域减去已分配固体 ---
+    {
+        name    air;
+        type    cellZoneSet;
+        action  new;
+        source  boxToCell;
+        box     (0.000 0.000 0.0000) (0.180 0.160 0.0180);
+    }
+    {
+        name    air;
+        type    cellZoneSet;
+        action  remove;
+        source  cellZoneToCell;
+        set     cpu;
+    }
+    {
+        name    air;
+        type    cellZoneSet;
+        action  remove;
+        source  cellZoneToCell;
+        set     vc;
+    }
+    {
+        name    air;
+        type    cellZoneSet;
+        action  remove;
+        source  cellZoneToCell;
+        set     motherboard;
+    }
+    {
+        name    air;
+        type    cellZoneSet;
+        action  remove;
+        source  cellZoneToCell;
+        set     fins;
+    }
+    {
+        name    air;
+        type    cellZoneSet;
+        action  remove;
+        source  cellZoneToCell;
+        set     screen;
+    }
+    {
+        name    air;
+        type    cellZoneSet;
+        action  remove;
+        source  cellZoneToCell;
+        set     chassis;
+    }
+);

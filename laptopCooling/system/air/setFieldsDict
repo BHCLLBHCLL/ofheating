@@ -1,0 +1,25 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      setFieldsDict;
+}
+
+defaultFieldValues
+(
+    volScalarFieldValue T 298
+);
+
+regions
+(
+    // 风扇流道区域略高初始速度 (可选, 主 BC 在 fanInlet)
+    boxToCell
+    {
+        box (0.095 0.045 0.0026) (0.135 0.115 0.0075);
+        fieldValues
+        (
+            volVectorFieldValue U (0 1.5 0)
+        );
+    }
+);

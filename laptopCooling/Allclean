@@ -1,0 +1,21 @@
+#!/bin/sh
+cd "${0%/*}/.." || exit 1
+
+echo "Cleaning case ..."
+
+rm -rf 0
+rm -rf postProcessing
+rm -rf processor*
+rm -f log.*
+
+for region in air cpu vc motherboard fins chassis screen; do
+    rm -rf "constant/$region"
+done
+
+for region in cpu vc motherboard fins chassis screen; do
+    rm -rf "system/$region"
+done
+
+rm -rf constant/polyMesh
+
+echo "Done."

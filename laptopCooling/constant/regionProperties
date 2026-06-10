@@ -1,0 +1,19 @@
+/* -*- C++ -*- */
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      regionProperties;
+}
+
+regions
+(
+    air         fluid
+    cpu         solid
+    vc          solid
+    motherboard solid
+    fins        solid
+    chassis     solid
+    screen      solid
+);
