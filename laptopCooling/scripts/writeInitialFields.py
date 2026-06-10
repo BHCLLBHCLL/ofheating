@@ -219,6 +219,23 @@ def write_air_p(patches: list[str], field: str = "p_rgh") -> None:
         (out_dir / "p").write_text(p_text + "\n")
 
 
+def write_solid_p(region: str, patches: list[str]) -> None:
+    """heSolidThermo/basicThermo 要求 0/<region>/p (MUST_READ)。"""
+    lines = [
+        foam_header("p"),
+        "dimensions      [1 -1 -2 0 0 0 0];",
+        f"internalField   uniform {P0};",
+        "boundaryField",
+        "{",
+    ]
+    for p in patches:
+        lines += [f"    {p}", "    {", "        type            zeroGradient;", "    }"]
+    lines.append("}")
+    out = CASE / "0" / region / "p"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(lines) + "\n")
+
+
 def write_solid_T(region: str, patches: list[str]) -> None:
     lines = [
         foam_header("T"),
@@ -284,6 +301,7 @@ def main() -> None:
             if ENABLE_RADIATION:
                 write_air_qr(patches)
         else:
+            write_solid_p(region, patches)
             write_solid_T(region, patches)
         extra = ", qr" if region == FLUID and ENABLE_RADIATION else ""
         print(f"  wrote 0/{region}/ fields ({len(patches)} patches{extra})")
