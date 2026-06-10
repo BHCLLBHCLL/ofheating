@@ -79,6 +79,8 @@ SIMPLE
     nNonOrthogonalCorrectors 0;
     momentumPredictor        yes;
     consistent               yes;
+    hydrostaticInitialization yes;
+    nHydrostaticCorrectors   3;
 
     residualControl
     {
@@ -92,9 +94,9 @@ relaxationFactors
 {
     equations
     {
-        U           0.7;
-        h           0.9;
-        p_rgh       0.3;
-        ".*"        0.9;
+        U           0.5;
+        h           0.5;
+        p_rgh       0.15;
+        ".*"        0.7;
     }
 }

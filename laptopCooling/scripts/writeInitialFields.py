@@ -16,7 +16,12 @@ REGIONS = ["air", "cpu", "vc", "motherboard", "fins", "chassis", "screen"]
 FLUID = "air"
 T0 = 298.0
 T_DIMS = "[0 0 0 1 0 0 0]"  # K
+H_DIMS = "[0 2 -2 0 0 0 0]"  # J/kg, sensibleEnthalpy
+CP_AIR = 1005.0  # J/kg/K, 与 constant/air/thermophysicalProperties 一致
+H0 = CP_AIR * T0
 P0 = 101325.0
+R_AIR = 287.0
+RHO0 = P0 / (R_AIR * T0)
 U_FAN = (0.0, 2.0, 0.0)  # m/s, 模拟风扇进风
 EXT_HTC = 8.0  # W/m^2/K, 固体外表面自然对流
 ENABLE_RADIATION = True
@@ -120,6 +125,71 @@ def write_air_T(patches: list[str]) -> None:
     out.write_text("\n".join(lines) + "\n")
 
 
+def write_air_h(patches: list[str]) -> None:
+    """heRhoThermo 能量方程求解 h；初值需与 T 一致 (h = Cp*T)。"""
+    lines = [
+        foam_header("h"),
+        f"dimensions      {H_DIMS};",
+        f"internalField   uniform {H0};",
+        "boundaryField",
+        "{",
+    ]
+    for p in patches:
+        if p.startswith("air_to_"):
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type            zeroGradient;",
+                "    }",
+            ]
+        elif p in {"fanInlet", "exhaust"}:
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type            fixedValue;",
+                f"        value           uniform {H0};",
+                "    }",
+            ]
+        else:
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type            zeroGradient;",
+                "    }",
+            ]
+    lines.append("}")
+    (CASE / "0" / "air" / "h").write_text("\n".join(lines) + "\n")
+
+
+def write_air_rho(patches: list[str]) -> None:
+    lines = [
+        foam_header("rho"),
+        "dimensions      [1 -3 0 0 0 0 0];",
+        f"internalField   uniform {RHO0};",
+        "boundaryField",
+        "{",
+    ]
+    for p in patches:
+        if p == "exhaust":
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type            fixedValue;",
+                f"        value           uniform {RHO0};",
+                "    }",
+            ]
+        else:
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type            calculated;",
+                f"        value           uniform {RHO0};",
+                "    }",
+            ]
+    lines.append("}")
+    (CASE / "0" / "air" / "rho").write_text("\n".join(lines) + "\n")
+
+
 def write_air_qr(patches: list[str]) -> None:
     lines = [
         foam_header("qr"),
@@ -205,7 +275,13 @@ def write_air_p(patches: list[str], field: str = "p_rgh") -> None:
         if p == "exhaust":
             lines += [f"    {p}", "    {", "        type            fixedValue;", "        value           uniform 0;", "    }"]
         elif p == "fanInlet":
-            lines += [f"    {p}", "    {", "        type            zeroGradient;", "    }"]
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type            fixedFluxPressure;",
+                "        value           uniform 0;",
+                "    }",
+            ]
         else:
             lines += [f"    {p}", "    {", "        type            fixedFluxPressure;", "        value           uniform 0;", "    }"]
     lines.append("}")
@@ -294,6 +370,8 @@ def main() -> None:
         patches = read_patches(region)
         if region == FLUID:
             write_air_T(patches)
+            write_air_h(patches)
+            write_air_rho(patches)
             write_air_U(patches)
             write_air_p(patches)
             if ENABLE_RADIATION:
@@ -301,7 +379,9 @@ def main() -> None:
         else:
             write_solid_p(region, patches)
             write_solid_T(region, patches)
-        extra = ", qr" if region == FLUID and ENABLE_RADIATION else ""
+        extra = ""
+        if region == FLUID:
+            extra = ", h, rho" + (", qr" if ENABLE_RADIATION else "")
         print(f"  wrote 0/{region}/ fields ({len(patches)} patches{extra})")
 
 
