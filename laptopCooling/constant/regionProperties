@@ -9,11 +9,6 @@ FoamFile
 
 regions
 (
-    air         fluid
-    cpu         solid
-    vc          solid
-    motherboard solid
-    fins        solid
-    chassis     solid
-    screen      solid
+    fluid   (air)
+    solid   (cpu vc motherboard fins chassis screen)
 );
