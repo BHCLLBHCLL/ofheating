@@ -22,7 +22,7 @@ for r in $REGIONS; do
     mkdir -p "$TPL/$r" "constant/$r"
     if [ "$r" = "air" ]; then
         for f in thermophysicalProperties radiationProperties momentumTransport \
-                 viewFactorsDict boundaryRadiationProperties; do
+                 turbulenceProperties viewFactorsDict boundaryRadiationProperties; do
             restore_file "$r" "$f"
         done
     else
