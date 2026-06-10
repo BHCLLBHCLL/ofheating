@@ -1,0 +1,69 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      boundaryRadiationProperties;
+}
+
+// 铝合金外表面
+xMin
+{
+    type        lookup;
+    emissivity  0.88;
+}
+
+zMin
+{
+    type        lookup;
+    emissivity  0.88;
+}
+
+zMax
+{
+    type        lookup;
+    emissivity  0.88;
+}
+
+hingeScreen
+{
+    type        lookup;
+    emissivity  0.88;
+}
+
+// 固体交界面 (emissivityMode solidRadiation 时由固体侧提供)
+air_to_cpu
+{
+    type        lookup;
+    emissivity  0.85;
+}
+
+air_to_vc
+{
+    type        lookup;
+    emissivity  0.85;
+}
+
+air_to_motherboard
+{
+    type        lookup;
+    emissivity  0.90;
+}
+
+air_to_fins
+{
+    type        lookup;
+    emissivity  0.88;
+}
+
+air_to_chassis
+{
+    type        lookup;
+    emissivity  0.88;
+}
+
+air_to_screen
+{
+    type        lookup;
+    emissivity  0.88;
+}

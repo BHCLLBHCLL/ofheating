@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 在 splitMeshRegions 之后为各区域生成 0/ 初始场与耦合边界。
-OpenFOAM v2412 / chtMultiRegionSimpleFoam
+OpenFOAM v2412 / chtMultiRegionSimpleFoam + viewFactor 辐射 (默认开启)
 """
 
 from pathlib import Path
@@ -13,6 +13,7 @@ FLUID = "air"
 T0 = 298.0
 P0 = 101325.0
 U_FAN = (0.0, 2.0, 0.0)  # m/s, 模拟风扇进风
+ENABLE_RADIATION = True
 
 
 def read_patches(region: str) -> list[str]:
@@ -23,12 +24,12 @@ def read_patches(region: str) -> list[str]:
     return re.findall(r"^\s{4}(\S+)\s*$", text, re.MULTILINE)
 
 
-def foam_header(obj: str) -> str:
+def foam_header(obj: str, field_class: str = "volScalarField") -> str:
     return f"""FoamFile
 {{
     version     2.0;
     format      ascii;
-    class       volScalarField;
+    class       {field_class};
     object      {obj};
 }}
 
@@ -37,14 +38,26 @@ def foam_header(obj: str) -> str:
 
 def write_air_T(patches: list[str]) -> None:
     lines = [
-        foam_header("T").replace("volScalarField", "volScalarField"),
-        f"dimensions      [0 1 0 1 0 0 0];",
+        foam_header("T"),
+        "dimensions      [0 1 0 1 0 0 0];",
         f"internalField   uniform {T0};",
         "boundaryField",
         "{",
     ]
     for p in patches:
-        if p.startswith("air_to_"):
+        if p.startswith("air_to_") and ENABLE_RADIATION:
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type                compressible::turbulentTemperatureRadCoupledMixed;",
+                "        Tnbr                T;",
+                "        qr                  qr;",
+                "        qrNbr               none;",
+                "        kappaMethod         fluidThermo;",
+                f"        value               uniform {T0};",
+                "    }",
+            ]
+        elif p.startswith("air_to_"):
             nbr = p.replace("air_to_", "")
             lines += [
                 f"    {p}",
@@ -88,17 +101,49 @@ def write_air_T(patches: list[str]) -> None:
     out.write_text("\n".join(lines) + "\n")
 
 
+def write_air_qr(patches: list[str]) -> None:
+    lines = [
+        foam_header("qr"),
+        "dimensions      [1 0 -3 0 0 0 0];",
+        "internalField   uniform 0;",
+        "boundaryField",
+        "{",
+    ]
+    for p in patches:
+        if p in {"fanInlet", "exhaust"}:
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type            zeroGradient;",
+                "    }",
+            ]
+        elif p.startswith("air_to_"):
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type                greyDiffusiveRadiationViewFactor;",
+                "        emissivityMode      solidRadiation;",
+                "        qro                 uniform 0;",
+                "        value               uniform 0;",
+                "    }",
+            ]
+        else:
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type                greyDiffusiveRadiationViewFactor;",
+                "        emissivityMode      lookup;",
+                "        qro                 uniform 0;",
+                "        value               uniform 0;",
+                "    }",
+            ]
+    lines.append("}")
+    (CASE / "0" / "air" / "qr").write_text("\n".join(lines) + "\n")
+
+
 def write_air_U(patches: list[str]) -> None:
     lines = [
-        """FoamFile
-{
-    version     2.0;
-    format      ascii;
-    class       volVectorField;
-    object      U;
-}
-
-""",
+        foam_header("U", "volVectorField"),
         "dimensions      [0 1 -1 0 0 0 0];",
         "internalField   uniform (0 0 0);",
         "boundaryField",
@@ -131,17 +176,9 @@ def write_air_U(patches: list[str]) -> None:
 
 def write_air_p(patches: list[str], field: str = "p_rgh") -> None:
     lines = [
-        f"""FoamFile
-{{
-    version     2.0;
-    format      ascii;
-    class       volScalarField;
-    object      {field};
-}}
-
-""",
+        foam_header(field),
         "dimensions      [1 -1 -2 0 0 0 0];",
-        f"internalField   uniform 0;",
+        "internalField   uniform 0;",
         "boundaryField",
         "{",
     ]
@@ -165,15 +202,7 @@ def write_air_p(patches: list[str], field: str = "p_rgh") -> None:
 
 def write_solid_T(region: str, patches: list[str]) -> None:
     lines = [
-        f"""FoamFile
-{{
-    version     2.0;
-    format      ascii;
-    class       volScalarField;
-    object      T;
-}}
-
-""",
+        foam_header("T"),
         "dimensions      [0 1 0 1 0 0 0];",
         f"internalField   uniform {T0};",
         "boundaryField",
@@ -183,18 +212,31 @@ def write_solid_T(region: str, patches: list[str]) -> None:
         if p.startswith(f"{region}_to_"):
             nbr = p.replace(f"{region}_to_", "")
             sample = f"{nbr}_to_{region}"
-            lines += [
-                f"    {p}",
-                "    {",
-                "        type                compressible::thermalBaffle;",
-                "        sampleMode          nearestCell;",
-                f"        samplePatch         {sample};",
-                "        targetMethod        meshWave;",
-                "        Tnbr                T;",
-                "        kappaMethod         solidThermo;",
-                f"        value               uniform {T0};",
-                "    }",
-            ]
+            if ENABLE_RADIATION and nbr == FLUID:
+                lines += [
+                    f"    {p}",
+                    "    {",
+                    "        type                compressible::turbulentTemperatureRadCoupledMixed;",
+                    "        Tnbr                T;",
+                    "        qr                  none;",
+                    "        qrNbr               qr;",
+                    "        kappaMethod         solidThermo;",
+                    f"        value               uniform {T0};",
+                    "    }",
+                ]
+            else:
+                lines += [
+                    f"    {p}",
+                    "    {",
+                    "        type                compressible::thermalBaffle;",
+                    "        sampleMode          nearestCell;",
+                    f"        samplePatch         {sample};",
+                    "        targetMethod        meshWave;",
+                    "        Tnbr                T;",
+                    "        kappaMethod         solidThermo;",
+                    f"        value               uniform {T0};",
+                    "    }",
+                ]
         else:
             lines += [
                 f"    {p}",
@@ -220,9 +262,12 @@ def main() -> None:
             write_air_T(patches)
             write_air_U(patches)
             write_air_p(patches)
+            if ENABLE_RADIATION:
+                write_air_qr(patches)
         else:
             write_solid_T(region, patches)
-        print(f"  wrote 0/{region}/ fields ({len(patches)} patches)")
+        extra = ", qr" if region == FLUID and ENABLE_RADIATION else ""
+        print(f"  wrote 0/{region}/ fields ({len(patches)} patches{extra})")
 
 
 if __name__ == "__main__":

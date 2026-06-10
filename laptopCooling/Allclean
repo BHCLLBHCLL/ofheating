@@ -9,7 +9,7 @@ rm -rf processor*
 rm -f log.*
 
 for region in air cpu vc motherboard fins chassis screen; do
-    rm -rf "constant/$region"
+    rm -rf "constant/$region/polyMesh"
 done
 
 for region in cpu vc motherboard fins chassis screen; do

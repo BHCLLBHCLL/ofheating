@@ -35,9 +35,31 @@ splitMeshRegions -cellZones -overwrite > log.splitMeshRegions 2>&1 \
 echo "--- setup solid system files ---"
 sh scripts/setupSolidSystem.sh
 
+echo "--- restore region constant dictionaries ---"
+sh scripts/setupRegionConstant.sh > log.setupRegionConstant 2>&1 \
+    || { cat log.setupRegionConstant; exit 1; }
+
 echo "--- write initial fields ---"
 python3 scripts/writeInitialFields.py > log.writeInitialFields 2>&1 \
     || { cat log.writeInitialFields; exit 1; }
+
+echo "--- setup viewFactor radiation ---"
+python3 scripts/setupRadiation.py > log.setupRadiation 2>&1 \
+    || { cat log.setupRadiation; exit 1; }
+
+echo "--- createViewFactors (air) ---"
+if command -v createViewFactors >/dev/null 2>&1; then
+    createViewFactors -region air > log.createViewFactors 2>&1 \
+        || { tail log.createViewFactors; exit 1; }
+elif command -v viewFactorsGen >/dev/null 2>&1; then
+    faceAgglomerate -region air > log.faceAgglomerate 2>&1 \
+        || { tail log.faceAgglomerate; exit 1; }
+    viewFactorsGen -region air > log.viewFactorsGen 2>&1 \
+        || { tail log.viewFactorsGen; exit 1; }
+else
+    echo "ERROR: 未找到 createViewFactors 或 viewFactorsGen 工具"
+    exit 1
+fi
 
 echo "--- setFields (风扇流道初值) ---"
 setFields -region air > log.setFields 2>&1 || { tail log.setFields; exit 1; }

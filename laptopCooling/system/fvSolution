@@ -71,6 +71,20 @@ solvers
         $h;
         relTol          0;
     }
+
+    qr
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-6;
+        relTol          0.1;
+    }
+
+    qRFinal
+    {
+        $qr;
+        relTol          0;
+    }
 }
 
 SIMPLE

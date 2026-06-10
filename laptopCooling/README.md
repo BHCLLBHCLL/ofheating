@@ -35,6 +35,21 @@
 - **outerWalls**: 外表面对流换热 h = 8 W/m²·K, T∞ = 298 K
 - **CPU**: 体积热源 25 W (M3 Pro 持续负载量级)
 
+## 辐射模型 (viewFactor, 默认开启)
+
+| 区域 | 模型 | 说明 |
+|------|------|------|
+| **air** | `viewFactor` | 空气域计算角系数辐射，参与面标记为 `viewFactorWall` |
+| **固体** | `opaqueSolid` | 不透明固体，通过 `qr` 与空气域耦合 |
+
+关键文件：
+- `constant/air/radiationProperties` — 开启 `radiation on`
+- `constant/air/viewFactorsDict` — `createViewFactors` 控制参数
+- `constant/air/boundaryRadiationProperties` — 各辐射面发射率
+- `0/air/qr` — 辐射热流密度场
+
+运行 `./Allrun` 时会自动执行 `createViewFactors -region air` 生成角系数矩阵。
+
 ## 运行环境
 
 - OpenFOAM **v2412** (或兼容的 v24xx 系列)
@@ -107,6 +122,9 @@ foamToVTK -allRegions
 | 风扇风速 | `0/air/U` → fanInlet | 边界速度 |
 | 网格密度 | `system/blockMeshDict` | 默认 90×80×9 ≈ 6.5 万单元 |
 | 材料导热率 | `constant/<region>/thermophysicalProperties` | |
+| 辐射开关 | `constant/air/radiationProperties` | `radiation on/off` |
+| 面发射率 | `constant/air/boundaryRadiationProperties` | 各 patch 发射率 |
+| 关闭辐射 | `scripts/writeInitialFields.py` | `ENABLE_RADIATION = False` |
 
 ## 热路示意
 
