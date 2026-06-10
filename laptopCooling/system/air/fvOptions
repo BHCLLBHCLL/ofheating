@@ -6,4 +6,12 @@ FoamFile
     object      fvOptions;
 }
 
-// 空字典: 已移除 limitVelocity (会钳制 99% 单元导致 phi 与压力方程不一致)
+// 在 thermo.correct() 之前钳制焓场, 防止负温度致命错误
+limitH
+{
+    type            limitTemperature;
+    active          yes;
+    selectionMode   all;
+    min             250;
+    max             450;
+}

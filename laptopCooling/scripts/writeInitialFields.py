@@ -22,8 +22,16 @@ H0 = CP_AIR * T0
 P0 = 101325.0
 R_AIR = 287.0
 RHO0 = P0 / (R_AIR * T0)
-U_FAN = (0.0, 0.3, 0.0)  # m/s, 双风扇总进风 (低马赫稳态)
-U_INIT = (0.0, 0.15, 0.0)  # 域内初值, 避免从静止突然启动
+U_FAN = (0.0, 0.1, 0.0)  # m/s, 双风扇进风 (低马赫、先求稳)
+U_INIT = (0.0, 0.0, 0.0)  # 域内从静止启动, 由边界逐步建立流场
+SOLID_CP = {
+    "cpu": 700.0,
+    "vc": 900.0,
+    "motherboard": 1200.0,
+    "fins": 903.0,
+    "chassis": 903.0,
+    "screen": 900.0,
+}
 EXT_HTC = 8.0  # W/m^2/K, 固体外表面自然对流
 ENABLE_RADIATION = True
 
@@ -156,11 +164,20 @@ def write_air_h(patches: list[str]) -> None:
                 "        type            zeroGradient;",
                 "    }",
             ]
-        elif p in FLOW_OPEN_PATCHES:
+        elif is_fan_inlet(p):
             lines += [
                 f"    {p}",
                 "    {",
                 "        type            fixedValue;",
+                f"        value           uniform {H0};",
+                "    }",
+            ]
+        elif is_exhaust(p):
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type            inletOutlet;",
+                f"        inletValue      uniform {H0};",
                 f"        value           uniform {H0};",
                 "    }",
             ]
@@ -316,6 +333,25 @@ def write_air_p(patches: list[str], field: str = "p_rgh") -> None:
         (out_dir / "p").write_text(p_text + "\n")
 
 
+def write_solid_h(region: str, patches: list[str]) -> None:
+    """heSolidThermo 求解 h；初值 h = Cp*T0 与 T 一致。"""
+    cp = SOLID_CP[region]
+    h0 = cp * T0
+    lines = [
+        foam_header("h"),
+        f"dimensions      {H_DIMS};",
+        f"internalField   uniform {h0};",
+        "boundaryField",
+        "{",
+    ]
+    for p in patches:
+        lines += [f"    {p}", "    {", "        type            zeroGradient;", "    }"]
+    lines.append("}")
+    out = CASE / "0" / region / "h"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("\n".join(lines) + "\n")
+
+
 def write_solid_p(region: str, patches: list[str]) -> None:
     """heSolidThermo/basicThermo 要求 0/<region>/p (MUST_READ)。"""
     lines = [
@@ -399,10 +435,13 @@ def main() -> None:
                 write_air_qr(patches)
         else:
             write_solid_p(region, patches)
+            write_solid_h(region, patches)
             write_solid_T(region, patches)
         extra = ""
         if region == FLUID:
             extra = ", h, rho" + (", qr" if ENABLE_RADIATION else "")
+        else:
+            extra = ", h"
         print(f"  wrote 0/{region}/ fields ({len(patches)} patches{extra})")
 
 

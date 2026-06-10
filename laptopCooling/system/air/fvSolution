@@ -83,9 +83,7 @@ SIMPLE
     momentumPredictor        no;
     consistent               no;
     hydrostaticInitialization yes;
-    nHydrostaticCorrectors   5;
-    rhoMin                   1.1;
-    rhoMax                   1.35;
+    nHydrostaticCorrectors   10;
     pRefCell                 0;
     pRefValue                0;
 
@@ -113,9 +111,9 @@ relaxationFactors
 {
     equations
     {
-        U           0.2;
-        h           0.8;
-        p_rgh       0.01;
-        ".*"        0.4;
+        U           0.1;
+        h           0.3;
+        p_rgh       0.02;
+        ".*"        0.3;
     }
 }
