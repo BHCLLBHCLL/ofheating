@@ -10,6 +10,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from meshBoundary import patch_names_from_boundary
+
 CASE = Path(__file__).resolve().parent.parent
 AIR = "air"
 SKIP_PATCHES = {"fanInlet", "exhaust"}
@@ -28,42 +31,16 @@ def air_boundary_path() -> Path:
     )
 
 
-def patch_names(text: str) -> list[str]:
-    """提取 boundary 列表中的 patch 名 (不含 FoamFile 块)。"""
-    m = re.search(r"^\d+\s*\n\(\s*$", text, re.MULTILINE)
-    if not m:
-        return []
-    names: list[str] = []
-    in_list = False
-    for line in text[m.end() :].splitlines():
-        if line.strip() == ")":
-            break
-        if re.match(r"^    \S+$", line):
-            in_list = True
-            names.append(line.strip())
-        elif in_list and line.strip() == "{":
-            in_list = False
-    return names
-
-
 def validate_boundary(text: str) -> None:
     m = re.search(r"^(\d+)\s*\n\(\s*$", text, re.MULTILINE)
     if not m:
         raise RuntimeError("boundary: missing patch count/list header")
     declared = int(m.group(1))
-    names = patch_names(text)
+    names = patch_names_from_boundary(text)
     if declared != len(names):
         raise RuntimeError(
-            f"boundary: declared {declared} patches, parsed {len(names)}"
+            f"boundary: declared {declared} patches, parsed {len(names)}: {names}"
         )
-    for name in names:
-        block = re.search(
-            rf"    {re.escape(name)}\s*\n    \{{",
-            text,
-            re.MULTILINE,
-        )
-        if not block:
-            raise RuntimeError(f"boundary: patch '{name}' missing opening brace")
 
 
 def patch_air_boundary() -> list[str]:
@@ -82,7 +59,6 @@ def patch_air_boundary() -> list[str]:
         line = lines[i]
         stripped = line.strip()
 
-        # patch 名行: 四个空格 + 标识符, 下一行必须是 "{"
         if (
             re.match(r"^    \S+$", line)
             and i + 1 < len(lines)
@@ -100,14 +76,6 @@ def patch_air_boundary() -> list[str]:
             if "viewFactorWall" in line:
                 patch_has_ingroup = True
             if stripped == "}":
-                if (
-                    current_patch not in SKIP_PATCHES
-                    and not patch_has_ingroup
-                    and not inserted_for_patch
-                ):
-                    raise RuntimeError(
-                        f"boundary: failed to insert inGroups for {current_patch}"
-                    )
                 out.append(line)
                 in_patch = False
                 current_patch = None

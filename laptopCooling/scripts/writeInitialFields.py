@@ -6,6 +6,10 @@ OpenFOAM v2412 / chtMultiRegionSimpleFoam + viewFactor 辐射 (默认开启)
 
 from pathlib import Path
 import re
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from meshBoundary import patch_names_from_boundary
 
 CASE = Path(__file__).resolve().parent.parent
 REGIONS = ["air", "cpu", "vc", "motherboard", "fins", "chassis", "screen"]
@@ -36,8 +40,7 @@ def boundary_path(region: str) -> Path:
 
 
 def read_patches(region: str) -> list[str]:
-    text = boundary_path(region).read_text()
-    return re.findall(r"^\s{4}(\S+)\s*$", text, re.MULTILINE)
+    return patch_names_from_boundary(boundary_path(region).read_text())
 
 
 def foam_header(obj: str, field_class: str = "volScalarField") -> str:
