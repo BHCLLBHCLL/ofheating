@@ -19,9 +19,12 @@ solvers
     p_rgh
     {
         solver          GAMG;
-        tolerance       1e-6;
-        relTol          0.01;
+        tolerance       1e-5;
+        relTol          0.05;
+        maxIter         150;
         smoother        GaussSeidel;
+        nPreSweeps      1;
+        nPostSweeps     2;
     }
 
     p_rghFinal
@@ -77,10 +80,12 @@ solvers
 SIMPLE
 {
     nNonOrthogonalCorrectors 0;
-    momentumPredictor        yes;
-    consistent               yes;
+    momentumPredictor        no;
+    consistent               no;
     hydrostaticInitialization yes;
-    nHydrostaticCorrectors   3;
+    nHydrostaticCorrectors   5;
+    rhoMin                   0.5;
+    rhoMax                   5;
 
     residualControl
     {
@@ -94,9 +99,9 @@ relaxationFactors
 {
     equations
     {
-        U           0.5;
-        h           0.5;
-        p_rgh       0.15;
-        ".*"        0.7;
+        U           0.3;
+        h           0.7;
+        p_rgh       0.05;
+        ".*"        0.5;
     }
 }

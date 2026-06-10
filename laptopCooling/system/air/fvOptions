@@ -6,11 +6,11 @@ FoamFile
     object      fvOptions;
 }
 
-limitT
+limitU
 {
-    type            limitTemperature;
+    type            limitVelocity;
     active          yes;
     selectionMode   all;
-    min             250;
-    max             450;
+    max             5;
+    U               U;
 }

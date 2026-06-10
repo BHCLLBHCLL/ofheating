@@ -22,7 +22,7 @@ H0 = CP_AIR * T0
 P0 = 101325.0
 R_AIR = 287.0
 RHO0 = P0 / (R_AIR * T0)
-U_FAN = (0.0, 2.0, 0.0)  # m/s, 模拟风扇进风
+U_FAN = (0.0, 0.8, 0.0)  # m/s, 低马赫进风 (稳态启动)
 EXT_HTC = 8.0  # W/m^2/K, 固体外表面自然对流
 ENABLE_RADIATION = True
 
@@ -273,7 +273,14 @@ def write_air_p(patches: list[str], field: str = "p_rgh") -> None:
     ]
     for p in patches:
         if p == "exhaust":
-            lines += [f"    {p}", "    {", "        type            fixedValue;", "        value           uniform 0;", "    }"]
+            lines += [
+                f"    {p}",
+                "    {",
+                "        type            inletOutlet;",
+                "        inletValue      uniform 0;",
+                "        value           uniform 0;",
+                "    }",
+            ]
         elif p == "fanInlet":
             lines += [
                 f"    {p}",

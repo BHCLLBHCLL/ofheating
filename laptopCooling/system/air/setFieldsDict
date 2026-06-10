@@ -19,7 +19,7 @@ regions
         box (0.095 0.045 0.0026) (0.135 0.115 0.0075);
         fieldValues
         (
-            volVectorFieldValue U (0 1.5 0)
+            volVectorFieldValue U (0 0.8 0)
         );
     }
 );
