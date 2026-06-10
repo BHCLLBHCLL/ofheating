@@ -77,14 +77,10 @@ def write_air_T(patches: list[str]) -> None:
                 "    }",
             ]
         elif p.startswith("air_to_"):
-            nbr = p.replace("air_to_", "")
             lines += [
                 f"    {p}",
                 "    {",
-                "        type                compressible::thermalBaffle;",
-                "        sampleMode          nearestCell;",
-                f"        samplePatch         {nbr}_to_air;",
-                "        targetMethod        meshWave;",
+                "        type                compressible::turbulentTemperatureCoupledBaffleMixed;",
                 "        Tnbr                T;",
                 "        kappaMethod         fluidThermo;",
                 f"        value               uniform {T0};",
@@ -247,7 +243,6 @@ def write_solid_T(region: str, patches: list[str]) -> None:
     for p in patches:
         if p.startswith(f"{region}_to_"):
             nbr = p.replace(f"{region}_to_", "")
-            sample = f"{nbr}_to_{region}"
             if ENABLE_RADIATION and nbr == FLUID:
                 lines += [
                     f"    {p}",
@@ -264,10 +259,7 @@ def write_solid_T(region: str, patches: list[str]) -> None:
                 lines += [
                     f"    {p}",
                     "    {",
-                    "        type                compressible::thermalBaffle;",
-                    "        sampleMode          nearestCell;",
-                    f"        samplePatch         {sample};",
-                    "        targetMethod        meshWave;",
+                    "        type                compressible::turbulentTemperatureCoupledBaffleMixed;",
                     "        Tnbr                T;",
                     "        kappaMethod         solidThermo;",
                     f"        value               uniform {T0};",
