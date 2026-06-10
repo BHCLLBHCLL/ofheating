@@ -29,7 +29,7 @@ echo "--- topoSet (部件 cellZone) ---"
 topoSet > log.topoSet 2>&1 || { tail log.topoSet; exit 1; }
 
 echo "--- splitMeshRegions ---"
-splitMeshRegions -cellZonesOnly -overwrite > log.splitMeshRegions 2>&1 \
+splitMeshRegions -cellZones -overwrite > log.splitMeshRegions 2>&1 \
     || { tail log.splitMeshRegions; exit 1; }
 
 echo "--- relocate / verify region meshes ---"

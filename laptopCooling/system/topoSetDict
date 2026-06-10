@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 // 按 MacBook Pro 14" 比例划分部件 cellZone (单位: m)
-// 固体 zone 互不重叠; 空气 zone 由 cellSet(全域-固体) 生成, 保证 cellZonesOnly 全覆盖
+// 先划分固体 zone, 再用 zoneToCell+delete 从空气 zone 中剔除固体 (v2412 兼容写法)
 
 FoamFile
 {
@@ -41,7 +41,7 @@ actions
     {
         name    motherboard;
         type    cellZoneSet;
-        action  remove;
+        action  delete;
         source  boxToCell;
         box     (0.055 0.060 0.0012) (0.095 0.100 0.0017);
     }
@@ -80,13 +80,13 @@ actions
         source  boxToCell;
         box     (0.000 0.000 0.0095) (0.180 0.160 0.0107);
     }
-    // --- 机壳: 左侧壁 (略加宽至 x=10mm, 避免与流体区留缝) ---
+    // --- 机壳: 左侧壁 ---
     {
         name    chassis;
         type    cellZoneSet;
         action  add;
         source  boxToCell;
-        box     (0.000 0.000 0.0012) (0.010 0.160 0.0095);
+        box     (0.000 0.000 0.0012) (0.012 0.160 0.0095);
     }
     // --- 机壳: 右侧壁 ---
     {
@@ -98,61 +98,27 @@ actions
     }
     // 前缘 y=0 留作 fanInlet 进风面, 不设机壳前壁
 
-    // --- 空气 (流体域): cellSet = 全域 - 各固体 zone ---
+    // --- 空气 (流体域): 全域 box, 再 delete 各固体 zone ---
     {
-        name    fluidCells;
-        type    cellSet;
+        name    air;
+        type    cellZoneSet;
         action  new;
         source  boxToCell;
         box     (0.000 0.000 0.0000) (0.180 0.160 0.0180);
     }
     {
-        name    fluidCells;
-        type    cellSet;
-        action  subtract;
-        source  zoneToCell;
-        zone    cpu;
-    }
-    {
-        name    fluidCells;
-        type    cellSet;
-        action  subtract;
-        source  zoneToCell;
-        zone    vc;
-    }
-    {
-        name    fluidCells;
-        type    cellSet;
-        action  subtract;
-        source  zoneToCell;
-        zone    motherboard;
-    }
-    {
-        name    fluidCells;
-        type    cellSet;
-        action  subtract;
-        source  zoneToCell;
-        zone    fins;
-    }
-    {
-        name    fluidCells;
-        type    cellSet;
-        action  subtract;
-        source  zoneToCell;
-        zone    screen;
-    }
-    {
-        name    fluidCells;
-        type    cellSet;
-        action  subtract;
-        source  zoneToCell;
-        zone    chassis;
-    }
-    {
         name    air;
         type    cellZoneSet;
-        action  new;
-        source  setToCellZone;
-        set     fluidCells;
+        action  delete;
+        source  zoneToCell;
+        zones
+        (
+            cpu
+            vc
+            motherboard
+            fins
+            screen
+            chassis
+        );
     }
 );
