@@ -6,8 +6,14 @@ FoamFile
     object      viewFactorsDict;
 }
 
+// OpenFOAM v2412 createViewFactors 必填项
+viewFactorModel     viewFactor2AI;
 raySearchEngine     voxel;
 agglomerate         false;
 nRayPerFace         100;
 writeViewFactors    true;
 writeRays           false;
+
+// voxel 射线引擎可选参数
+nTriPerVoxelMax     50;
+depthMax            5;

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-为 viewFactor 辐射模型配置空气域参与面 (viewFactorWall)。
-仅修改 constant/air/polyMesh/boundary 中各 patch 的 inGroups, 保持 OpenFOAM 语法完整。
+为 viewFactor 辐射模型配置空气域:
+  - 写入 v2412 createViewFactors 所需的 viewFactorsDict
+  - 为 polyMesh/boundary 参与面添加 viewFactorWall 组
 """
 
 from __future__ import annotations
@@ -17,6 +18,33 @@ CASE = Path(__file__).resolve().parent.parent
 AIR = "air"
 SKIP_PATCHES = {"fanInlet", "exhaust"}
 INGROUPS_LINE = "        inGroups        2(wall viewFactorWall);"
+
+VIEW_FACTORS_DICT_BODY = """FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      viewFactorsDict;
+}
+
+// OpenFOAM v2412 createViewFactors
+viewFactorModel     viewFactor2AI;
+raySearchEngine     voxel;
+agglomerate         false;
+nRayPerFace         100;
+writeViewFactors    true;
+writeRays           false;
+
+nTriPerVoxelMax     50;
+depthMax            5;
+"""
+
+
+def ensure_view_factors_dict() -> None:
+    """覆盖写入 viewFactorsDict (避免 templates/ 缓存旧版缺少 viewFactorModel)。"""
+    path = CASE / "constant" / AIR / "viewFactorsDict"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(VIEW_FACTORS_DICT_BODY)
 
 
 def air_boundary_path() -> Path:
@@ -105,6 +133,8 @@ def patch_air_boundary() -> list[str]:
 
 
 def main() -> int:
+    ensure_view_factors_dict()
+    print("  viewFactorsDict written (viewFactorModel=viewFactor2AI)")
     patches = patch_air_boundary()
     print(f"  viewFactorWall enabled on {len(patches)} air patches:")
     for name in patches:
