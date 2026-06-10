@@ -17,6 +17,7 @@ FLUID = "air"
 T0 = 298.0
 P0 = 101325.0
 U_FAN = (0.0, 2.0, 0.0)  # m/s, 模拟风扇进风
+EXT_HTC = 8.0  # W/m^2/K, 固体外表面自然对流
 ENABLE_RADIATION = True
 
 
@@ -273,10 +274,10 @@ def write_solid_T(region: str, patches: list[str]) -> None:
             lines += [
                 f"    {p}",
                 "    {",
-                "        type            externalWallHeatFlux;",
-                "        Q               uniform 0;",
-                "        h               uniform 8;",
-                f"        Ta              uniform {T0};",
+                "        type            externalWallHeatFluxTemperature;",
+                "        mode            coefficient;",
+                f"        h               uniform {EXT_HTC};",
+                f"        Ta              constant {T0};",
                 "        kappaMethod     solidThermo;",
                 f"        value           uniform {T0};",
                 "    }",
