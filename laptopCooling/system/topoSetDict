@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
-// 按 MacBook Pro 14" 比例划分部件 cellZone (单位: m)
-// 先划分固体 zone, 再用 zoneToCell+delete 从空气 zone 中剔除固体 (v2412 兼容写法)
+// 部件 cellZone (单位: m), z 向按 dz=0.5mm 层对齐 (单元中心 0.25+0.5k mm)
+// 先划分固体 zone, 再 zoneToCell+delete 生成空气 zone
 
 FoamFile
 {
@@ -12,73 +12,73 @@ FoamFile
 
 actions
 (
-    // --- CPU 处理器 (40x40x0.5 mm 封装) ---
+    // --- CPU 封装层 z: 1.5-2.5mm (物理 1.7-2.2mm, 2 层单元) ---
     {
         name    cpu;
         type    cellZoneSet;
         action  new;
         source  boxToCell;
-        box     (0.055 0.060 0.0017) (0.095 0.100 0.0022);
+        box     (0.055 0.060 0.0015) (0.095 0.100 0.0025);
     }
 
-    // --- VC 蒸汽腔 (60x60x0.4 mm) ---
+    // --- VC 蒸汽腔 z: 2.0-3.0mm (物理 2.2-2.6mm) ---
     {
         name    vc;
         type    cellZoneSet;
         action  new;
         source  boxToCell;
-        box     (0.045 0.050 0.0022) (0.105 0.110 0.0026);
+        box     (0.045 0.050 0.0020) (0.105 0.110 0.0030);
     }
 
-    // --- 主板 FR4 (z=1.2-1.7 mm, 排除 CPU 下方重叠) ---
+    // --- 主板 FR4 z: 1.0-2.0mm (物理 1.2-1.7mm) ---
     {
         name    motherboard;
         type    cellZoneSet;
         action  new;
         source  boxToCell;
-        box     (0.020 0.020 0.0012) (0.160 0.140 0.0017);
+        box     (0.020 0.020 0.0010) (0.160 0.140 0.0020);
     }
     {
         name    motherboard;
         type    cellZoneSet;
         action  delete;
         source  boxToCell;
-        box     (0.055 0.060 0.0012) (0.095 0.100 0.0017);
+        box     (0.055 0.060 0.0010) (0.095 0.100 0.0020);
     }
 
-    // --- 散热翅片 (40x80x6.4 mm 翅片组) ---
+    // --- 散热翅片 z: 2.5-9.0mm (物理 2.6-9.0mm) ---
     {
         name    fins;
         type    cellZoneSet;
         action  new;
         source  boxToCell;
-        box     (0.130 0.040 0.0026) (0.170 0.120 0.0090);
+        box     (0.130 0.040 0.0025) (0.170 0.120 0.0090);
     }
 
-    // --- 屏幕后盖/转轴区 ---
+    // --- 屏幕后盖 z: 10.5-16.5mm ---
     {
         name    screen;
         type    cellZoneSet;
         action  new;
         source  boxToCell;
-        box     (0.010 0.135 0.0107) (0.170 0.158 0.0165);
+        box     (0.010 0.135 0.0105) (0.170 0.158 0.0165);
     }
 
-    // --- 机壳: 底板 ---
+    // --- 机壳: 底板 z: 0-1.5mm ---
     {
         name    chassis;
         type    cellZoneSet;
         action  new;
         source  boxToCell;
-        box     (0.000 0.000 0.0000) (0.180 0.160 0.0012);
+        box     (0.000 0.000 0.0000) (0.180 0.160 0.0015);
     }
-    // --- 机壳: 顶盖 ---
+    // --- 机壳: 顶盖 z: 9.0-11.0mm ---
     {
         name    chassis;
         type    cellZoneSet;
         action  add;
         source  boxToCell;
-        box     (0.000 0.000 0.0095) (0.180 0.160 0.0107);
+        box     (0.000 0.000 0.0090) (0.180 0.160 0.0110);
     }
     // --- 机壳: 左侧壁 ---
     {
@@ -86,7 +86,7 @@ actions
         type    cellZoneSet;
         action  add;
         source  boxToCell;
-        box     (0.000 0.000 0.0012) (0.012 0.160 0.0095);
+        box     (0.000 0.000 0.0010) (0.012 0.160 0.0095);
     }
     // --- 机壳: 右侧壁 ---
     {
@@ -94,11 +94,10 @@ actions
         type    cellZoneSet;
         action  add;
         source  boxToCell;
-        box     (0.172 0.000 0.0012) (0.180 0.160 0.0095);
+        box     (0.172 0.000 0.0010) (0.180 0.160 0.0095);
     }
-    // 前缘 y=0 留作 fanInlet 进风面, 不设机壳前壁
 
-    // --- 空气 (流体域): 全域 box, 再 delete 各固体 zone ---
+    // --- 空气: 全域减去固体 ---
     {
         name    air;
         type    cellZoneSet;
