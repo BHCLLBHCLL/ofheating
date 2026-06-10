@@ -6,7 +6,7 @@ FoamFile
     object      controlDict;
 }
 
-application     chtMultiRegionFoam;
+application     chtMultiRegionSimpleFoam;
 
 startFrom       startTime;
 
@@ -18,9 +18,9 @@ endTime         2000;
 
 deltaT          1;
 
-writeControl    adjustableRunTime;
+writeControl    timeStep;
 
-writeInterval   100;
+writeInterval   200;
 
 purgeWrite      0;
 
@@ -36,9 +36,49 @@ timePrecision   6;
 
 runTimeModifiable true;
 
-adjustTimeStep  yes;
+adjustTimeStep  no;
 
-maxCo           0.5;
+functions
+{
+    resAir
+    {
+        type            residuals;
+        libs            (utilityFunctionObjects);
+        region          air;
+        writeControl    timeStep;
+        writeInterval   1;
+        log             true;
+        fields
+        (
+            p_rgh
+            U
+            h
+        );
+    }
 
-maxDeltaT       5;
+    resSolids
+    {
+        type            multiRegion;
+        libs            (utilityFunctionObjects);
 
+        function
+        {
+            type            residuals;
+            libs            (utilityFunctionObjects);
+            writeControl    timeStep;
+            writeInterval   1;
+            log             true;
+            fields          (h);
+        }
+
+        regions
+        (
+            cpu
+            vc
+            motherboard
+            fins
+            chassis
+            screen
+        );
+    }
+}

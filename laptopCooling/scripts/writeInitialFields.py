@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 在 splitMeshRegions 之后为各区域生成 0/ 初始场与耦合边界。
-OpenFOAM v2412 / chtMultiRegionFoam
+OpenFOAM v2412 / chtMultiRegionSimpleFoam
 """
 
 from pathlib import Path

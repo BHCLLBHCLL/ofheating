@@ -17,7 +17,7 @@ fi
 
 echo "========================================"
 echo " MacBook Pro 14 笔记本散热 CHT 算例"
-echo " OpenFOAM v2412 / chtMultiRegionFoam"
+echo " OpenFOAM v2412 / chtMultiRegionSimpleFoam"
 echo "========================================"
 
 ./Allclean 2>/dev/null
@@ -42,6 +42,6 @@ python3 scripts/writeInitialFields.py > log.writeInitialFields 2>&1 \
 echo "--- setFields (风扇流道初值) ---"
 setFields -region air > log.setFields 2>&1 || { tail log.setFields; exit 1; }
 
-echo "--- chtMultiRegionFoam ---"
-chtMultiRegionFoam > log.chtMultiRegionFoam 2>&1
+echo "--- chtMultiRegionSimpleFoam ---"
+chtMultiRegionSimpleFoam > log.chtMultiRegionSimpleFoam 2>&1
 echo "Done. 后处理: paraFoam -multiRegion"

@@ -1,6 +1,6 @@
 # OpenFOAM 笔记本散热仿真
 
-本仓库包含基于 **OpenFOAM v2412** 的 MacBook Pro 14" 笔记本散热共轭传热 (CHT) 算例。
+本仓库包含基于 **OpenFOAM v2412** 的 MacBook Pro 14" 笔记本散热共轭传热 (CHT) 算例，默认使用 `chtMultiRegionSimpleFoam` 求解 2000 步。
 
 ## 算例
 

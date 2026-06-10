@@ -37,10 +37,21 @@ solvers
     }
 }
 
+SIMPLE
+{
+    nNonOrthogonalCorrectors 0;
+
+    residualControl
+    {
+        h   1e-6;
+    }
+}
+
 relaxationFactors
 {
     equations
     {
-        ".*"            1;
+        h           0.9;
+        ".*"        0.9;
     }
 }

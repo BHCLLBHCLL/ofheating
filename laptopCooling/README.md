@@ -1,6 +1,6 @@
 # MacBook Pro 14" 笔记本散热仿真 (OpenFOAM v2412)
 
-基于 **MacBook Pro 14 英寸 (M3 Pro, 2023)** 外形与散热布局的简化共轭传热 (CHT) 算例，使用 `chtMultiRegionFoam` 求解器。
+基于 **MacBook Pro 14 英寸 (M3 Pro, 2023)** 外形与散热布局的简化共轭传热 (CHT) 算例，使用 `chtMultiRegionSimpleFoam` 求解器（伪瞬态 SIMPLE 算法）。
 
 ## 外形参照 (Apple 官方规格)
 
@@ -69,6 +69,21 @@ laptopCooling/
 │   └── <region>/thermophysicalProperties
 └── 0/
     └── <region>/T, U, p_rgh ...
+```
+
+## 求解设置
+
+| 项目 | 配置 |
+|------|------|
+| 求解器 | `chtMultiRegionSimpleFoam` |
+| 时间步数 | 2000（`deltaT = 1`，`endTime = 2000`） |
+| 结果保存 | 每 200 步（`writeInterval = 200`） |
+| 残差输出 | 每步写入 `postProcessing/residuals/` |
+
+实时查看残差曲线：
+
+```bash
+foamMonitor postProcessing/residuals/*/residuals.dat
 ```
 
 ## 后处理
