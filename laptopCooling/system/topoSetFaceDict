@@ -1,0 +1,78 @@
+/* -*- C++ -*- */
+// 双风扇布局: 从 fanInlet / hingeScreen 面集切分局部进/排气 patch
+// 坐标单位 m, 与 geometry/macbookPro14_dims.ini 一致
+
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetFaceDict;
+}
+
+actions
+(
+    // ---- 底面进风: 左风扇 x=50-95 mm ----
+    {
+        name    fanInletLeftFaces;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        patch   fanInlet;
+    }
+    {
+        name    fanInletLeftFaces;
+        type    faceSet;
+        action  subset;
+        source  boxToFace;
+        box     (0.050 -0.0005 0) (0.095 0.0005 0.018);
+    }
+
+    // ---- 底面进风: 右风扇 x=105-150 mm ----
+    {
+        name    fanInletRightFaces;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        patch   fanInlet;
+    }
+    {
+        name    fanInletRightFaces;
+        type    faceSet;
+        action  subset;
+        source  boxToFace;
+        box     (0.105 -0.0005 0) (0.150 0.0005 0.018);
+    }
+
+    // ---- 后缘排气: 左栅 x=10-85 mm, z=10-18 mm ----
+    {
+        name    exhaustLeftFaces;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        patch   hingeScreen;
+    }
+    {
+        name    exhaustLeftFaces;
+        type    faceSet;
+        action  subset;
+        source  boxToFace;
+        box     (0.010 0.1595 0.010) (0.085 0.1605 0.018);
+    }
+
+    // ---- 后缘排气: 右栅 x=95-170 mm, z=10-18 mm ----
+    {
+        name    exhaustRightFaces;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        patch   hingeScreen;
+    }
+    {
+        name    exhaustRightFaces;
+        type    faceSet;
+        action  subset;
+        source  boxToFace;
+        box     (0.095 0.1595 0.010) (0.170 0.1605 0.018);
+    }
+);

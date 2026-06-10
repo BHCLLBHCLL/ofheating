@@ -13,10 +13,19 @@ defaultFieldValues
 
 regions
 (
-    // 风扇流道区域略高初始速度 (可选, 主 BC 在 fanInlet)
+    // 左风扇流道 (x=50-95 mm)
     boxToCell
     {
-        box (0.095 0.045 0.0026) (0.135 0.115 0.0075);
+        box (0.050 0.045 0.0026) (0.095 0.115 0.0075);
+        fieldValues
+        (
+            volVectorFieldValue U (0 0.8 0)
+        );
+    }
+    // 右风扇流道 (x=105-150 mm)
+    boxToCell
+    {
+        box (0.105 0.045 0.0026) (0.150 0.115 0.0075);
         fieldValues
         (
             volVectorFieldValue U (0 0.8 0)

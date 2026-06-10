@@ -26,6 +26,19 @@ U_FAN = (0.0, 0.8, 0.0)  # m/s, 低马赫进风 (稳态启动)
 EXT_HTC = 8.0  # W/m^2/K, 固体外表面自然对流
 ENABLE_RADIATION = True
 
+# 双风扇布局 (与 system/topoSetFaceDict 一致)
+FAN_INLET_PATCHES = frozenset({"fanInletLeft", "fanInletRight"})
+EXHAUST_PATCHES = frozenset({"exhaustLeft", "exhaustRight"})
+FLOW_OPEN_PATCHES = FAN_INLET_PATCHES | EXHAUST_PATCHES
+
+
+def is_fan_inlet(patch: str) -> bool:
+    return patch in FAN_INLET_PATCHES
+
+
+def is_exhaust(patch: str) -> bool:
+    return patch in EXHAUST_PATCHES
+
 
 def boundary_path(region: str) -> Path:
     candidates = [CASE / "constant" / region / "polyMesh" / "boundary"]
@@ -95,7 +108,7 @@ def write_air_T(patches: list[str]) -> None:
                 f"        value               uniform {T0};",
                 "    }",
             ]
-        elif p == "fanInlet":
+        elif is_fan_inlet(p):
             lines += [
                 f"    {p}",
                 "    {",
@@ -103,7 +116,7 @@ def write_air_T(patches: list[str]) -> None:
                 f"        value           uniform {T0};",
                 "    }",
             ]
-        elif p == "exhaust":
+        elif is_exhaust(p):
             lines += [
                 f"    {p}",
                 "    {",
@@ -142,7 +155,7 @@ def write_air_h(patches: list[str]) -> None:
                 "        type            zeroGradient;",
                 "    }",
             ]
-        elif p in {"fanInlet", "exhaust"}:
+        elif p in FLOW_OPEN_PATCHES:
             lines += [
                 f"    {p}",
                 "    {",
@@ -170,11 +183,11 @@ def write_air_rho(patches: list[str]) -> None:
         "{",
     ]
     for p in patches:
-        if p == "exhaust":
+        if is_exhaust(p):
             lines += [
                 f"    {p}",
                 "    {",
-                "        type            fixedValue;",
+                "        type            calculated;",
                 f"        value           uniform {RHO0};",
                 "    }",
             ]
@@ -199,7 +212,7 @@ def write_air_qr(patches: list[str]) -> None:
         "{",
     ]
     for p in patches:
-        if p in {"fanInlet", "exhaust"}:
+        if p in FLOW_OPEN_PATCHES:
             lines += [
                 f"    {p}",
                 "    {",
@@ -241,7 +254,7 @@ def write_air_U(patches: list[str]) -> None:
     for p in patches:
         if p.startswith("air_to_"):
             lines += [f"    {p}", "    {", "        type            noSlip;", "    }"]
-        elif p == "fanInlet":
+        elif is_fan_inlet(p):
             lines += [
                 f"    {p}",
                 "    {",
@@ -249,7 +262,7 @@ def write_air_U(patches: list[str]) -> None:
                 f"        value           uniform ({U_FAN[0]} {U_FAN[1]} {U_FAN[2]});",
                 "    }",
             ]
-        elif p == "exhaust":
+        elif is_exhaust(p):
             lines += [
                 f"    {p}",
                 "    {",
@@ -272,7 +285,7 @@ def write_air_p(patches: list[str], field: str = "p_rgh") -> None:
         "{",
     ]
     for p in patches:
-        if p == "exhaust":
+        if is_exhaust(p):
             lines += [
                 f"    {p}",
                 "    {",
@@ -281,7 +294,7 @@ def write_air_p(patches: list[str], field: str = "p_rgh") -> None:
                 "        value           uniform 0;",
                 "    }",
             ]
-        elif p == "fanInlet":
+        elif is_fan_inlet(p):
             lines += [
                 f"    {p}",
                 "    {",

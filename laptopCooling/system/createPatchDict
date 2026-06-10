@@ -1,0 +1,60 @@
+/* -*- C++ -*- */
+// blockMesh 后切分双风扇进/排气 patch (OpenFOAM v2412 createPatch)
+
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+
+fanInletLeft
+{
+    patchInfo
+    {
+        type            patch;
+    }
+    constructFrom     set;
+    set               fanInletLeftFaces;
+}
+
+fanInletRight
+{
+    patchInfo
+    {
+        type            patch;
+    }
+    constructFrom     set;
+    set               fanInletRightFaces;
+}
+
+bottomWall
+{
+    patchInfo
+    {
+        type            wall;
+    }
+    constructFrom     patches;
+    patches           (fanInlet);
+}
+
+exhaustLeft
+{
+    patchInfo
+    {
+        type            patch;
+    }
+    constructFrom     set;
+    set               exhaustLeftFaces;
+}
+
+exhaustRight
+{
+    patchInfo
+    {
+        type            patch;
+    }
+    constructFrom     set;
+    set               exhaustRightFaces;
+}

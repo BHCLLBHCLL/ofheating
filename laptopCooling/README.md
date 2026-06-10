@@ -28,11 +28,20 @@
 | **screen** 屏幕后盖 | 10–170, 135–158, 10.7–16.5 | 铝合金 + 玻璃等效 |
 | **air** 空气 | 机壳内其余流体域 | 强制对流 (风扇) |
 
-## 边界条件
+## 边界条件 (双风扇布局)
 
-- **fanInlet** (y=0 面): 速度入口 U = (0, 2, 0) m/s, T = 298 K (模拟进风)
-- **exhaust** (x=180 面): 压力出口
-- **outerWalls**: 外表面对流换热 h = 8 W/m²·K, T∞ = 298 K
+| Patch | 位置 | 类型 |
+|-------|------|------|
+| **fanInletLeft** | 底面 x=50–95 mm | 速度入口 U = (0, 0.8, 0) m/s, T = 298 K |
+| **fanInletRight** | 底面 x=105–150 mm | 同上 |
+| **bottomWall** | 底面其余区域 | 封闭壁面 (noSlip) |
+| **exhaustLeft** | 后缘 y=160, x=10–85, z=10–18 mm | 压力出口 |
+| **exhaustRight** | 后缘 y=160, x=95–170, z=10–18 mm | 压力出口 |
+| **xMax** | 右侧面 x=180 | 封闭侧壁 |
+| **outerWalls** | 其余外表面 | 对流 h = 8 W/m²·K, T∞ = 298 K |
+
+网格在 `blockMesh` 后由 `topoSetFaceDict` + `createPatchDict` 自动切分进/排气 patch。
+
 - **CPU**: 体积热源 25 W (M3 Pro 持续负载量级)
 
 ## 辐射模型 (viewFactor, 默认开启)
@@ -119,7 +128,8 @@ foamToVTK -allRegions
 | 参数 | 文件 | 说明 |
 |------|------|------|
 | CPU 功耗 | `constant/cpu/fvOptions` | `heatSource` 源项 |
-| 风扇风速 | `0/air/U` → fanInlet | 边界速度 |
+| 风扇风速 | `scripts/writeInitialFields.py` → `U_FAN` | 双进风口速度 |
+| 进/排气位置 | `system/topoSetFaceDict` | patch 切分盒 |
 | 网格密度 | `system/blockMeshDict` | 默认 90×80×72 ≈ 52 万单元 (dz=0.25mm) |
 | 材料导热率 | `constant/<region>/thermophysicalProperties` | |
 | 辐射开关 | `constant/air/radiationProperties` | `radiation on/off` |
@@ -133,8 +143,10 @@ flowchart LR
     CPU["CPU 25W"] --> VC["VC 蒸汽腔"]
     VC --> Fins["铝翅片"]
     Fins --> Air["空气域"]
-    Fan["fanInlet 进风"] --> Air
-    Air --> Exhaust["exhaust 出风"]
+    FanL["fanInletLeft"] --> Air
+    FanR["fanInletRight"] --> Air
+    Air --> ExL["exhaustLeft"]
+    Air --> ExR["exhaustRight"]
     CPU --> MB["主板"]
     Chassis["机壳"] -.-> Air
     Screen["屏幕后盖"] -.-> Chassis

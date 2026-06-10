@@ -25,6 +25,14 @@ echo "========================================"
 echo "--- blockMesh ---"
 blockMesh > log.blockMesh 2>&1 || { tail log.blockMesh; exit 1; }
 
+echo "--- topoSet (双风扇面 patch) ---"
+topoSet -dict system/topoSetFaceDict > log.topoSetFace 2>&1 \
+    || { tail log.topoSetFace; exit 1; }
+
+echo "--- createPatch (fanInletLeft/Right, exhaustLeft/Right) ---"
+createPatch -overwrite -dict system/createPatchDict > log.createPatch 2>&1 \
+    || { tail log.createPatch; exit 1; }
+
 echo "--- topoSet (部件 cellZone) ---"
 topoSet > log.topoSet 2>&1 || { tail log.topoSet; exit 1; }
 

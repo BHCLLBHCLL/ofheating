@@ -31,6 +31,30 @@ hingeScreen
     emissivity  0.88;
 }
 
+bottomWall
+{
+    type        lookup;
+    emissivity  0.88;
+}
+
+xMax
+{
+    type        lookup;
+    emissivity  0.88;
+}
+
+exhaustLeft
+{
+    type        lookup;
+    emissivity  0.88;
+}
+
+exhaustRight
+{
+    type        lookup;
+    emissivity  0.88;
+}
+
 // 固体交界面 (emissivityMode solidRadiation 时由固体侧提供)
 air_to_cpu
 {

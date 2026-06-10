@@ -16,7 +16,13 @@ from meshBoundary import patch_names_from_boundary
 
 CASE = Path(__file__).resolve().parent.parent
 AIR = "air"
-SKIP_PATCHES = {"fanInlet", "exhaust"}
+SKIP_PATCHES = {
+    "fanInletLeft",
+    "fanInletRight",
+    "exhaustLeft",
+    "exhaustRight",
+    "bottomWall",
+}
 INGROUPS_LINE = "        inGroups        2(wall viewFactorWall);"
 
 VIEW_FACTORS_DICT_BODY = """FoamFile

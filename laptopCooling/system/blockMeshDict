@@ -37,15 +37,15 @@ boundary
 (
     fanInlet
     {
-        type patch;
+        type wall;
         faces
         (
             (0 1 5 4)
         );
     }
-    exhaust
+    xMax
     {
-        type patch;
+        type wall;
         faces
         (
             (1 2 6 5)
